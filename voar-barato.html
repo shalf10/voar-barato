@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voar Barato</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #131826;
+    --surface2: #1c2236;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f2f8;
+    --muted: #8892a4;
+    --accent: #4f9eff;
+    --accent-dim: rgba(79,158,255,0.12);
+    --accent2: #38d9a9;
+    --accent2-dim: rgba(56,217,169,0.12);
+    --warn: #f9a825;
+    --warn-dim: rgba(249,168,37,0.12);
+    --danger: #ff6b6b;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo .plane-icon {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+
+  nav { display: flex; gap: 4px; }
+
+  nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  nav button.active, nav button:hover {
+    color: var(--text);
+    background: var(--surface2);
+  }
+
+  nav button.active { color: var(--accent); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  /* Chat */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 360px;
+    margin-bottom: 1.5rem;
+  }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    animation: fadeUp 0.3s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500;
+  }
+
+  .avatar.ai { background: var(--accent-dim); color: var(--accent); }
+  .avatar.user { background: var(--surface2); color: var(--muted); }
+
+  .bubble {
+    max-width: 78%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .msg.ai .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+
+  .msg.user .bubble {
+    background: var(--accent);
+    color: #fff;
+    border-top-right-radius: 4px;
+  }
+
+  .bubble strong { font-weight: 500; }
+
+  /* Flight cards inside bubble */
+  .flight-cards { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 8px; }
+
+  .fcard {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-decoration: none;
+    transition: border-color 0.2s;
+  }
+
+  .fcard:hover { border-color: var(--accent); }
+
+  .fcard-route { font-size: 13px; font-weight: 500; color: var(--text); }
+  .fcard-info { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .fcard-right { text-align: right; flex-shrink: 0; }
+  .fcard-site { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .fcard-btn {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* Input row */
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .input-wrap { flex: 1; position: relative; }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 48px;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.75rem 1.25rem;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:active { transform: scale(0.97); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .hint-chips {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem;
+  }
+
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 99px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  /* Monitor */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .badge {
+    font-size: 11px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+  }
+
+  .badge.green { background: var(--accent2-dim); color: var(--accent2); }
+  .badge.warn { background: var(--warn-dim); color: var(--warn); }
+
+  .add-route-card {
+    background: var(--surface);
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+
+  .form-group { flex: 1; min-width: 140px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  input[type=text], input[type=number], input[type=date], select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  select option { background: var(--surface2); }
+
+  .add-btn {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 8px 18px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .add-btn:hover { background: rgba(79,158,255,0.22); }
+
+  .routes-grid { display: flex; flex-direction: column; gap: 10px; }
+
+  .route-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .route-card:hover { border-color: var(--border2); }
+
+  .route-main { flex: 1; }
+  .route-label {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.3px;
+  }
+
+  .route-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .route-actions { display: flex; gap: 8px; align-items: center; }
+
+  .icon-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.18s;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+
+  .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .icon-btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+
+  .price-target {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .price-big {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent2);
+  }
+
+  .price-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  /* Config */
+  .config-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .config-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+  }
+
+  .typing-dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--muted);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: blink 1.2s infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.2; }
+    40% { opacity: 1; }
+  }
+
+  .fcard-left { flex: 1; min-width: 0; }
+
+  @media (max-width: 600px) {
+    .container { padding: 1rem; }
+    header { padding: 1rem; }
+    .form-row { flex-direction: column; }
+    nav button { padding: 6px 10px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="plane-icon">✈</div>
+    Voar Barato
+  </div>
+  <nav>
+    <button class="active" onclick="showSection('chat', this)">Chat</button>
+    <button onclick="showSection('monitor', this)">Monitorar</button>
+    <button onclick="showSection('config', this)">Configurar</button>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- CHAT -->
+  <div id="chat" class="section visible">
+    <div class="hint-chips" id="chips">
+      <span class="chip" onclick="fillChip(this)">✈ Passagem barata de GRU p/ qualquer lugar</span>
+      <span class="chip" onclick="fillChip(this)">🗓 Voos em julho saindo de São Paulo</span>
+      <span class="chip" onclick="fillChip(this)">🏖 Destino praia em até R$500</span>
+      <span class="chip" onclick="fillChip(this)">🌎 Opções internacionais em setembro</span>
+    </div>
+    <div class="chat-area" id="chatArea"></div>
+    <div class="input-row">
+      <div class="input-wrap">
+        <textarea id="chatInput" placeholder="Ex: Voos baratos saindo de GRU em julho, idealmente abaixo de R$600..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">Buscar ↗</button>
+    </div>
+  </div>
+
+  <!-- MONITOR -->
+  <div id="monitor" class="section">
+    <div class="section-title">
+      Rotas monitoradas
+      <span class="badge green" id="routeCount">0 rotas</span>
+    </div>
+
+    <div class="add-route-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Origem (IATA)</label>
+          <input type="text" id="origin" placeholder="ex: GRU, VCP, CGH" maxlength="3" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group">
+          <label>Destino (IATA ou "qualquer")</label>
+          <input type="text" id="dest" placeholder="ex: GIG, MIA, qualquer" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group">
+          <label>Mês alvo</label>
+          <input type="month" id="targetMonth">
+        </div>
+        <div class="form-group">
+          <label>Preço máximo (R$)</label>
+          <input type="number" id="maxPrice" placeholder="ex: 600" min="1">
+        </div>
+      </div>
+      <button class="add-btn" onclick="addRoute()">+ Adicionar rota</button>
+    </div>
+
+    <div class="routes-grid" id="routesGrid">
+      <div class="empty-state" id="emptyState">
+        <div class="big">🗺️</div>
+        Nenhuma rota monitorada ainda.<br>Adicione rotas acima para acompanhar preços.
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div id="config" class="section">
+    <div class="section-title">Configurações</div>
+
+    <div class="config-card">
+      <h3>Seu aeroporto de origem padrão</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Código IATA</label>
+          <input type="text" id="homeAirport" placeholder="ex: GRU" maxlength="3" oninput="this.value=this.value.toUpperCase()" value="">
+        </div>
+        <div class="form-group">
+          <label>Cidade</label>
+          <input type="text" id="homeCity" placeholder="ex: São Paulo" value="">
+        </div>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>Preferências de busca</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Classe preferida</label>
+          <select id="cabinClass">
+            <option value="economy">Econômica</option>
+            <option value="premium">Econômica Premium</option>
+            <option value="business">Executiva</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de viagem</label>
+          <select id="tripType">
+            <option value="roundtrip">Ida e volta</option>
+            <option value="oneway">Só ida</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Adultos</label>
+          <input type="number" id="paxCount" value="1" min="1" max="9">
+        </div>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>Chave de API Claude (necessária)</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>API Key Anthropic</label>
+          <input type="text" id="apiKey" placeholder="sk-ant-..." style="font-family: monospace; font-size: 13px;">
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--muted); margin-top: 6px;">A chave fica salva somente no seu navegador (localStorage). Nunca é enviada a servidores terceiros.</p>
+    </div>
+
+    <button class="add-btn" onclick="saveConfig()" style="margin-top: 0.5rem;">Salvar configurações</button>
+    <div id="configMsg" style="margin-top: 10px; font-size: 13px; color: var(--accent2);"></div>
+  </div>
+
+</div>
+
+<script>
+// --- State ---
+let routes = JSON.parse(localStorage.getItem('vb_routes') || '[]');
+let config = JSON.parse(localStorage.getItem('vb_config') || '{}');
+let chatHistory = [];
+
+// --- Sections ---
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('visible');
+  btn.classList.add('active');
+  if (id === 'monitor') renderRoutes();
+  if (id === 'config') loadConfig();
+  if (id === 'chat' && chatHistory.length === 0) initChat();
+}
+
+// --- Chat ---
+function initChat() {
+  const origin = config.homeAirport || 'GRU';
+  const city = config.homeCity || 'São Paulo';
+  addBubble('ai', `Olá! Sou seu assistente de passagens baratas. Você sai de <strong>${city} (${origin})</strong> por padrão. Me diga o que está procurando — destino, mês, orçamento — e vou gerar links diretos para as melhores buscas no Google Flights, Kayak e Skyscanner.`);
+}
+
+function addBubble(role, html) {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const avatar = role === 'ai' ? '✈' : '👤';
+  div.innerHTML = `
+    <div class="avatar ${role}">${avatar}</div>
+    <div class="bubble">${html}</div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = 'typing';
+  div.innerHTML = `
+    <div class="avatar ai">✈</div>
+    <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function fillChip(el) {
+  document.getElementById('chatInput').value = el.textContent.replace(/^[^\w]+/, '').trim();
+  document.getElementById('chatInput').focus();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const apiKey = config.apiKey || localStorage.getItem('vb_apiKey') || '';
+  if (!apiKey) {
+    addBubble('ai', 'Você precisa informar sua <strong>chave de API Anthropic</strong> na aba <strong>Configurar</strong> para usar o chat com IA.');
+    return;
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('chips').style.display = 'none';
+
+  addBubble('user', escHtml(text));
+  chatHistory.push({ role: 'user', content: text });
+
+  addTyping();
+
+  const origin = config.homeAirport || 'GRU';
+  const city = config.homeCity || 'São Paulo';
+  const cabin = config.cabinClass || 'economy';
+  const pax = config.paxCount || 1;
+
+  const systemPrompt = `Você é um assistente especialista em encontrar passagens aéreas baratas para um usuário brasileiro.
+Aeroporto de origem padrão: ${origin} (${city}).
+Classe: ${cabin}. Passageiros: ${pax}.
+Data de hoje: ${new Date().toLocaleDateString('pt-BR')}.
+
+Quando o usuário pedir passagens, analise o pedido e responda em português com:
+1. Um parágrafo curto de análise/dica sobre a rota ou período.
+2. Uma lista JSON de links de busca nos seguintes sites: Google Flights, Kayak, Skyscanner.
+
+IMPORTANTE: Responda SEMPRE com este formato exato (não use markdown, só o JSON puro no bloco LINKS):
+[TEXTO]
+Sua análise curta aqui.
+[/TEXTO]
+[LINKS]
+[
+  {"site":"Google Flights","label":"GRU → destino / mês","url":"https://www.google.com/travel/flights?..."},
+  {"site":"Kayak","label":"GRU → destino / mês","url":"https://www.kayak.com.br/flights/..."},
+  {"site":"Skyscanner","label":"GRU → destino / mês","url":"https://www.skyscanner.com.br/flights/..."}
+]
+[/LINKS]
+
+Para montar as URLs, use os parâmetros corretos:
+- Google Flights: https://www.google.com/travel/flights/search?tfs=... (use parâmetros q= ou tfs= com os aeroportos)
+  Simples: https://www.google.com/travel/flights?q=Voos+de+${origin}+para+DESTINO+em+MES
+- Kayak: https://www.kayak.com.br/flights/ORIGIN-DEST/DATA-IDA/DATA-VOLTA
+- Skyscanner: https://www.skyscanner.com.br/transporte/voos/ORIG/DEST/AAAAMM/
+
+Se o destino for "qualquer lugar" ou "explorar", use:
+- Google: https://www.google.com/travel/flights?q=Voos+baratos+de+${origin}
+- Kayak: https://www.kayak.com.br/flights/${origin}-anywhere
+- Skyscanner: https://www.skyscanner.com.br/transporte/voos/${origin.toLowerCase()}/br/
+
+Adapte os links ao pedido do usuário da forma mais precisa possível.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: chatHistory
+      })
+    });
+
+    const data = await resp.json();
+    removeTyping();
+
+    if (data.error) throw new Error(data.error.message);
+
+    const rawText = data.content.map(b => b.text || '').join('');
+    chatHistory.push({ role: 'assistant', content: rawText });
+
+    const textoMatch = rawText.match(/\[TEXTO\]([\s\S]*?)\[\/TEXTO\]/);
+    const linksMatch = rawText.match(/\[LINKS\]([\s\S]*?)\[\/LINKS\]/);
+
+    let bubbleHtml = '';
+
+    if (textoMatch) bubbleHtml += `<p>${escHtml(textoMatch[1].trim())}</p>`;
+
+    if (linksMatch) {
+      try {
+        const links = JSON.parse(linksMatch[1].trim());
+        bubbleHtml += '<div class="flight-cards">';
+        links.forEach(l => {
+          bubbleHtml += `<a class="fcard" href="${l.url}" target="_blank" rel="noopener">
+            <div class="fcard-left">
+              <div class="fcard-route">${escHtml(l.label || '')}</div>
+              <div class="fcard-info">${escHtml(l.site)}</div>
+            </div>
+            <div class="fcard-right">
+              <div class="fcard-site">abrir busca</div>
+              <div class="fcard-btn">Ver preços →</div>
+            </div>
+          </a>`;
+        });
+        bubbleHtml += '</div>';
+      } catch(e) {
+        bubbleHtml += `<p>${escHtml(rawText)}</p>`;
+      }
+    } else {
+      bubbleHtml += `<p>${escHtml(rawText)}</p>`;
+    }
+
+    addBubble('ai', bubbleHtml);
+
+  } catch (err) {
+    removeTyping();
+    addBubble('ai', `Erro ao buscar: <em>${escHtml(err.message)}</em>. Verifique sua API key nas configurações.`);
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// --- Monitor ---
+function addRoute() {
+  const origin = document.getElementById('origin').value.trim() || config.homeAirport || 'GRU';
+  const dest = document.getElementById('dest').value.trim() || 'QUALQUER';
+  const month = document.getElementById('targetMonth').value;
+  const maxPrice = document.getElementById('maxPrice').value;
+
+  if (!origin) { alert('Informe a origem'); return; }
+
+  const route = {
+    id: Date.now(),
+    origin: origin.toUpperCase(),
+    dest: dest.toUpperCase(),
+    month,
+    maxPrice: maxPrice ? parseInt(maxPrice) : null,
+    addedAt: new Date().toISOString()
+  };
+
+  routes.push(route);
+  saveRoutes();
+  renderRoutes();
+
+  document.getElementById('origin').value = '';
+  document.getElementById('dest').value = '';
+  document.getElementById('targetMonth').value = '';
+  document.getElementById('maxPrice').value = '';
+}
+
+function deleteRoute(id) {
+  routes = routes.filter(r => r.id !== id);
+  saveRoutes();
+  renderRoutes();
+}
+
+function saveRoutes() {
+  localStorage.setItem('vb_routes', JSON.stringify(routes));
+  document.getElementById('routeCount').textContent = routes.length + (routes.length === 1 ? ' rota' : ' rotas');
+}
+
+function renderRoutes() {
+  document.getElementById('routeCount').textContent = routes.length + (routes.length === 1 ? ' rota' : ' rotas');
+  const grid = document.getElementById('routesGrid');
+  const empty = document.getElementById('emptyState');
+
+  const existing = grid.querySelectorAll('.route-card');
+  existing.forEach(e => e.remove());
+
+  if (routes.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  routes.forEach(r => {
+    const destLabel = r.dest === 'QUALQUER' ? 'Qualquer destino' : r.dest;
+    const monthLabel = r.month ? new Date(r.month + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'Qualquer mês';
+
+    const googleUrl = r.dest === 'QUALQUER'
+      ? `https://www.google.com/travel/flights?q=Voos+baratos+de+${r.origin}`
+      : `https://www.google.com/travel/flights?q=Voos+de+${r.origin}+para+${r.dest}+${monthLabel}`;
+
+    const skyscannerUrl = r.dest === 'QUALQUER'
+      ? `https://www.skyscanner.com.br/transporte/voos/${r.origin.toLowerCase()}/br/`
+      : `https://www.skyscanner.com.br/transporte/voos/${r.origin.toLowerCase()}/${r.dest.toLowerCase()}/${r.month ? r.month.replace('-','') : ''}`;
+
+    const card = document.createElement('div');
+    card.className = 'route-card';
+    card.innerHTML = `
+      <div class="route-main">
+        <div class="route-label">${r.origin} → ${destLabel}</div>
+        <div class="route-sub">${monthLabel} · ${r.maxPrice ? 'Máx R$' + r.maxPrice.toLocaleString('pt-BR') : 'Qualquer preço'}</div>
+      </div>
+      <div class="route-actions">
+        <a class="icon-btn" href="${googleUrl}" target="_blank" rel="noopener">Google Flights</a>
+        <a class="icon-btn" href="${skyscannerUrl}" target="_blank" rel="noopener">Skyscanner</a>
+        <button class="icon-btn danger" onclick="deleteRoute(${r.id})">✕</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// --- Config ---
+function loadConfig() {
+  config = JSON.parse(localStorage.getItem('vb_config') || '{}');
+  if (config.homeAirport) document.getElementById('homeAirport').value = config.homeAirport;
+  if (config.homeCity) document.getElementById('homeCity').value = config.homeCity;
+  if (config.cabinClass) document.getElementById('cabinClass').value = config.cabinClass;
+  if (config.tripType) document.getElementById('tripType').value = config.tripType;
+  if (config.paxCount) document.getElementById('paxCount').value = config.paxCount;
+  if (config.apiKey) document.getElementById('apiKey').value = config.apiKey;
+}
+
+function saveConfig() {
+  config = {
+    homeAirport: document.getElementById('homeAirport').value.trim().toUpperCase() || 'GRU',
+    homeCity: document.getElementById('homeCity').value.trim() || 'São Paulo',
+    cabinClass: document.getElementById('cabinClass').value,
+    tripType: document.getElementById('tripType').value,
+    paxCount: parseInt(document.getElementById('paxCount').value) || 1,
+    apiKey: document.getElementById('apiKey').value.trim()
+  };
+  localStorage.setItem('vb_config', JSON.stringify(config));
+  localStorage.setItem('vb_apiKey', config.apiKey);
+  document.getElementById('configMsg').textContent = 'Configurações salvas!';
+  setTimeout(() => document.getElementById('configMsg').textContent = '', 2500);
+}
+
+// --- Init ---
+config = JSON.parse(localStorage.getItem('vb_config') || '{}');
+initChat();
+renderRoutes();
+</script>
+</body>
+</html>
